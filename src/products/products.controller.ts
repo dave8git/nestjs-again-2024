@@ -1,6 +1,8 @@
-import { Controller, Get, Param, Delete, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, Delete, Post, Put, Body, NotFoundException } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDTO } from './dtos/create-product.dto';
+import { UpdateProductDTO } from './dtos/update-product.dto';
+import { ParseUUIDPipe } from '@nestjs/common';
 
 @Controller('products')
 export class ProductsController {
@@ -13,11 +15,11 @@ export class ProductsController {
         return this.productsService.getAll();
     }
     @Get('/:id')
-    public getById(@Param('id') id: string) {
+    public getById(@Param('id', new ParseUUIDPipe()) id: string) {
         return this.productsService.getById(id);
     }
     @Delete('/:id')
-    public deleteById(@Param('id') id: string) {
+    public deleteById(@Param('id', new ParseUUIDPipe()) id: string) {
         this.productsService.deleteById(id);
         return { success: true};
     }
@@ -25,4 +27,16 @@ export class ProductsController {
     create(@Body() productData: CreateProductDTO) {
         return this.productsService.create(productData);
     }
+    @Put('/:id')
+    update(
+        @Param('id', new ParseUUIDPipe()) id: string, // first pipe to check the id
+        @Body() productData: UpdateProductDTO,  // second pipe is a global check
+    ) {
+        if (!this.productsService.getById(id))
+            throw new NotFoundException('Product not found');
+
+        this.productsService.updateById(id, productData);
+        return { success: true }
+    }
+
 }

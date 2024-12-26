@@ -18,4 +18,14 @@ export class ProductsService {
         db.products.push(newProduct);
         return newProduct;
     }
+
+    public updateById(id: Product['id'], productData: Omit<Product, 'id'>): void {
+        db.products = db.products.map((p) => { // overwirtes whole database with appriopriate data
+            if (p.id === id) {
+                return { ...p, ...productData }; // overwrite fields in found object (in db)
+            } else {
+                return p;
+            }   
+        })
+    }
 }
